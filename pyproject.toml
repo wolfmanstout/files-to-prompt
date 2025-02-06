@@ -24,3 +24,7 @@ files-to-prompt = "files_to_prompt.cli:cli"
 
 [project.optional-dependencies]
 test = ["pytest"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

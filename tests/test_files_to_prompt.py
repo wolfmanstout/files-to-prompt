@@ -1,6 +1,6 @@
 import os
-import pytest
 
+import pytest
 from click.testing import CliRunner
 
 from files_to_prompt.cli import cli
@@ -50,17 +50,31 @@ def test_ignore_gitignore(tmpdir):
             f.write("This file should be ignored")
         with open("test_dir/included.txt", "w") as f:
             f.write("This file should be included")
+        os.makedirs("test_dir/nested_dir_a")
+        with open("test_dir/nested_dir_a/.gitignore", "w") as f:
+            f.write("*")
+        with open("test_dir/nested_dir_a/ignored_in_nested_dir.txt", "w") as f:
+            f.write("This file in nested_dir_a should be ignored")
+        os.makedirs("test_dir/nested_dir_b")
+        with open("test_dir/nested_dir_b/included_in_nested_dir.txt", "w") as f:
+            f.write("This file in nested_dir_b should be included")
 
         result = runner.invoke(cli, ["test_dir"])
         assert result.exit_code == 0
         assert "test_dir/ignored.txt" not in result.output
         assert "test_dir/included.txt" in result.output
+        assert "test_dir/nested_dir_a/ignored_in_nested_dir.txt" not in result.output
+        assert "test_dir/nested_dir_b/included_in_nested_dir.txt" in result.output
 
         result = runner.invoke(cli, ["test_dir", "--ignore-gitignore"])
         assert result.exit_code == 0
         assert "test_dir/ignored.txt" in result.output
         assert "This file should be ignored" in result.output
         assert "test_dir/included.txt" in result.output
+        assert "test_dir/nested_dir_a/ignored_in_nested_dir.txt" in result.output
+        assert "This file in nested_dir_a should be ignored" in result.output
+        assert "test_dir/nested_dir_b/included_in_nested_dir.txt" in result.output
+        assert "This file in nested_dir_b should be included" in result.output
 
 
 def test_multiple_paths(tmpdir):
